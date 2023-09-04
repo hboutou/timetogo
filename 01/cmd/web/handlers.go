@@ -9,6 +9,7 @@ import (
 	"unicode/utf8"
 
 	"01/internal/models"
+	"01/internal/validator"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -64,6 +65,7 @@ type snippetCreateForm struct {
 	Content     string
 	Expires     int
 	FieldErrors map[string]string
+	validator.Validator
 }
 
 func (app *application) snippetCreatePost(w http.ResponseWriter, r *http.Request) {
