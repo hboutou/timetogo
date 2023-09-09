@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"html/template"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -18,8 +18,7 @@ import (
 )
 
 type application struct {
-	errorLog       *log.Logger
-	infoLog        *log.Logger
+	logger         *slog.Logger
 	snippets       *models.SnippetModel
 	templateCache  map[string]*template.Template
 	sessionManager *scs.SessionManager
@@ -30,18 +29,22 @@ func main() {
 	dsn := flag.String("dsn", "./db.sqlite", "SQLite3 data source name")
 	flag.Parse()
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime|log.LUTC)
-	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.LUTC|log.Lshortfile)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level:     slog.LevelInfo,
+		AddSource: false, // include file path and line number
+	}))
 
 	db, err := openDB(*dsn)
 	if err != nil {
-		errorLog.Fatal(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 	defer db.Close()
 
 	templateCache, err := newTemplateCache()
 	if err != nil {
-		errorLog.Fatal(err)
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
 
 	sessionManager := scs.New()
@@ -50,8 +53,7 @@ func main() {
 	sessionManager.Cookie.Secure = true
 
 	app := &application{
-		errorLog:       errorLog,
-		infoLog:        infoLog,
+		logger:         logger,
 		snippets:       &models.SnippetModel{DB: db},
 		templateCache:  templateCache,
 		sessionManager: sessionManager,
@@ -67,7 +69,7 @@ func main() {
 	server := &http.Server{
 		Addr:      *addr,
 		Handler:   app.routes(),
-		ErrorLog:  errorLog,
+		ErrorLog:  slog.NewLogLogger(logger.Handler(), slog.LevelError),
 		TLSConfig: tlsConfig,
 
 		// connection timeouts
@@ -76,9 +78,11 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	infoLog.Printf("Starting server on %s", *addr)
+	logger.Info("starting server", "addr", *addr)
+
 	err = server.ListenAndServeTLS("tls/cert.pem", "tls/key.pem")
-	errorLog.Fatal(err)
+	logger.Error(err.Error())
+	os.Exit(1)
 }
 
 func openDB(dsn string) (*sql.DB, error) {

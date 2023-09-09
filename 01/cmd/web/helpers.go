@@ -37,9 +37,9 @@ func (app *application) render(w http.ResponseWriter, status int, page string, d
 // The serverError helper writes an error message and stack trace to the errorLog,
 // then sends a generic 500 Internal Server Error response to the user.
 func (app *application) serverError(w http.ResponseWriter, err error) {
-	trace := fmt.Sprintf("%s\n%s", err.Error(), debug.Stack())
-	app.errorLog.Output(2, trace)
-
+	// maybe also add request as param so that logger can include route and method
+	trace := string(debug.Stack())
+	app.logger.Error(err.Error(), "trace", trace)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 }
 
