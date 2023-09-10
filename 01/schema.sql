@@ -1,3 +1,19 @@
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    hashed_password BLOB NOT NULL,
+    created DATETIME NOT NULL
+);
+
+DROP TABLE IF EXISTS sessions;
+CREATE TABLE sessions (
+    token TEXT PRIMARY KEY,
+    data BLOB NOT NULL,
+    expiry DATETIME NOT NULL
+);
+
 DROP TABLE IF EXISTS snippets;
 CREATE TABLE snippets (
     id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -40,10 +56,3 @@ shows my father''s face.
     DATETIME('NOW', '+1 DAY')
 );
 
-
-DROP TABLE IF EXISTS sessions;
-CREATE TABLE sessions (
-    token TEXT PRIMARY KEY,
-    data BLOB NOT NULL,
-    expiry DATETIME NOT NULL
-);
