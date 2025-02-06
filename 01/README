@@ -1,0 +1,4 @@
+podman build -t blah .
+
+podman run --rm -it -p9090:8080 --name c blah
+
