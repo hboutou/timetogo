@@ -1,0 +1,10 @@
+FROM golang:1.23 AS build
+WORKDIR /blah
+COPY main.go .
+RUN CGO_ENABLED=0 GOOS=linux go build -o app main.go
+
+FROM scratch
+COPY --from=build /blah/app /app
+EXPOSE 8080
+CMD ["/app", "-port=8080"]
+
