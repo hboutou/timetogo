@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"math/rand"
 	"net/http"
-	"time"
 )
 
 var fruits = [...]string{"🍇", "🍈", "🍉", "🍊", "🍋", "🍌", "🍍", "🥭", "🍎", "🍏", "🍐", "🍑", "🍒", "🍓", "🫐", "🥝", "🍅", "🥥"}
@@ -22,8 +21,6 @@ func main() {
 
 	addr := fmt.Sprintf(":%d", *port)
 
-	rand.Seed(time.Now().UnixNano())
-
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", home)
 
@@ -31,6 +28,6 @@ func main() {
 
 	err := http.ListenAndServe(addr, mux)
 	if err != nil {
-		slog.Error("oups!", err)
+		slog.Error("oups!", "error", err)
 	}
 }
